@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
+    "start": "yarn run server",
+    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "server": "nodemon ./bin/www",
     "client": "cd client && yarn start",
     "heroku-postbuild": "cd client && yarn && yarn run build"
