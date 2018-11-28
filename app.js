@@ -1,10 +1,11 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const mysql = require('mysql');
 
-var app = express();
+const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -15,6 +16,46 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'client/build')));
+
+const connection = mysql.createConnection({
+  host: 'us-cdbr-iron-east-01.cleardb.net',
+  user: 'ba2cf57fd03e1d',
+  password: '1059b564',
+  database: 'heroku_fb274b19cae264c',
+});
+
+connection.connect();
+
+const jsonFormatter = results => {
+  return {
+    count: results.length,
+    results,
+  };
+};
+
+app.get('/project', function(req, res) {
+  connection.query('SELECT * FROM project', function(err, results, fields) {
+    if (err) throw err;
+
+    res.json(jsonFormatter(results));
+  });
+});
+
+app.get('/employee', function(req, res) {
+  connection.query('SELECT * FROM employee', function(err, results, fields) {
+    if (err) throw err;
+
+    res.json(jsonFormatter(results));
+  });
+});
+
+app.get('/participation', function(req, res) {
+  connection.query('SELECT * FROM participation', function(err, results, fields) {
+    if (err) throw err;
+
+    res.json(jsonFormatter(results));
+  });
+});
 
 // Anything that doesn't match the above, send back index.html
 app.get('*', (req, res) => {
