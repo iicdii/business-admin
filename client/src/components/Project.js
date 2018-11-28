@@ -91,7 +91,8 @@ class Project extends Component {
           project_name,
           start_date,
           end_date,
-          ordering_company
+          ordering_company,
+          employee_count
         } = item;
 
         return {
@@ -100,7 +101,8 @@ class Project extends Component {
           project_name,
           start_date: moment(start_date).format('YYYY-MM-DD'),
           end_date: end_date ? moment(end_date).format('YYYY-MM-DD') : '',
-          ordering_company
+          ordering_company,
+          employee_count
         };
       });
     } catch (err) {
