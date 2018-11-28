@@ -33,7 +33,7 @@ const jsonFormatter = results => {
   };
 };
 
-app.get('/project', function(req, res) {
+app.get('/get/project', function(req, res) {
   connection.query('SELECT * FROM project', function(err, results, fields) {
     if (err) throw err;
 
@@ -41,7 +41,7 @@ app.get('/project', function(req, res) {
   });
 });
 
-app.get('/employee', function(req, res) {
+app.get('/get/employee', function(req, res) {
   connection.query('SELECT * FROM employee', function(err, results, fields) {
     if (err) throw err;
 
@@ -49,7 +49,7 @@ app.get('/employee', function(req, res) {
   });
 });
 
-app.get('/participation', function(req, res) {
+app.get('/get/participation', function(req, res) {
   connection.query('SELECT * FROM participation', function(err, results, fields) {
     if (err) throw err;
 
