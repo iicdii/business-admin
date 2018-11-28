@@ -5,7 +5,8 @@
   "scripts": {
     "start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "server": "node ./bin/www",
-    "client": "cd client && yarn start"
+    "client": "cd client && yarn start",
+    "heroku-postbuild": "cd client && yarn && yarn run build"
   },
   "dependencies": {
     "concurrently": "^4.1.0",
