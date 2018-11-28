@@ -5,3 +5,9 @@
   margin: 16px 28px;
   float: left;
 }
+
+.content-header {
+  background: #fff;
+  font-weight: bold;
+  font-size: 20px;
+}

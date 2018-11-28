@@ -7,7 +7,7 @@ class Home extends Component {
   render() {
     return (
       <div>
-        <Header style={{ background: '#fff' }}>
+        <Header className="content-header">
           홈
         </Header>
         <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>

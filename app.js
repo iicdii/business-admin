@@ -26,18 +26,31 @@ const connection = mysql.createConnection({
 
 connection.connect();
 
-const jsonFormatter = results => {
+const jsonFormatter = (results = [], fields = []) => {
   return {
     count: results.length,
     results,
+    fields,
   };
 };
 
-app.get('/get/project', function(req, res) {
-  connection.query('SELECT * FROM project', function(err, results, fields) {
+app.get('/get/project', async function(req, res) {
+  const projectQuery = `
+    SELECT
+      a.project_id,
+      project_name,
+      a.start_date,
+      a.end_date,
+      ordering_company,
+      COUNT(*) employee_count
+    FROM project a JOIN participation b ON a.project_id = b.project_id
+    GROUP BY project_id;
+  `;
+
+  connection.query(projectQuery, function(err, results, fields) {
     if (err) throw err;
 
-    res.json(jsonFormatter(results));
+    res.json(jsonFormatter(results, fields));
   });
 });
 
@@ -45,15 +58,22 @@ app.get('/get/employee', function(req, res) {
   connection.query('SELECT * FROM employee', function(err, results, fields) {
     if (err) throw err;
 
-    res.json(jsonFormatter(results));
+    res.json(jsonFormatter(results, fields));
   });
 });
 
 app.get('/get/participation', function(req, res) {
-  connection.query('SELECT * FROM participation', function(err, results, fields) {
+  const participationQuery = `
+    SELECT project_id, e.emp_id, name, start_date, end_date, job, career, skill
+    FROM employee e
+    NATURAL JOIN participation
+    LEFT JOIN career ON participation.emp_id = career.emp_id
+  `;
+
+  connection.query(participationQuery, function(err, results, fields) {
     if (err) throw err;
 
-    res.json(jsonFormatter(results));
+    res.json(jsonFormatter(results, fields));
   });
 });
 

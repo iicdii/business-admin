@@ -1,26 +1,28 @@
 import React, { Component } from 'react';
 import { Layout, Menu, Icon } from 'antd';
-import { NavLink } from 'react-router-dom';
+import { NavLink, withRouter } from 'react-router-dom';
 import './BasicLayout.css';
 
 const { Sider } = Layout;
 
 class BasicLayout extends Component {
   render() {
+    const { location } = this.props;
+
     return (
       <Layout style={{ height: '100vh' }}>
         <Sider
           trigger={null}
         >
           <div className="logo" />
-          <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-            <Menu.Item key="1">
+          <Menu theme="dark" mode="inline" defaultSelectedKeys={[location.pathname]}>
+            <Menu.Item key="/">
               <NavLink to="/" className="nav-text">
                 <Icon type="home" />
                 <span>홈</span>
               </NavLink>
             </Menu.Item>
-            <Menu.Item key="2">
+            <Menu.Item key="/project">
               <NavLink to="/project" className="nav-text">
                 <Icon type="project" />
                 <span>프로젝트 관리</span>
@@ -36,4 +38,4 @@ class BasicLayout extends Component {
   }
 }
 
-export default BasicLayout;
+export default withRouter(BasicLayout);
