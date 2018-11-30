@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Layout, Table, Skeleton } from 'antd';
+import { Layout, Table, Skeleton, Row, Col, DatePicker } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import cloneDeep from 'lodash/cloneDeep';
 
 const { Header, Content } = Layout;
+const { RangePicker } = DatePicker;
 
 class Project extends Component {
   state = {
@@ -40,8 +41,8 @@ class Project extends Component {
     employeeDataSource: [],
     employeeColumns: [{
       title: 'id',
-      dataIndex: 'emp_id',
-      key: 'emp_id',
+      dataIndex: 'id',
+      key: 'id',
     }, {
       title: '직원명',
       dataIndex: 'name',
@@ -74,92 +75,119 @@ class Project extends Component {
     }],
   };
 
+  originProjectDataSource = [];
+  originEmployeeDataSource = [];
+
   async componentDidMount() {
     this.setState({ loading: true });
 
     const newState = {...cloneDeep(this.state), loading: false};
 
+    // 프로젝트 데이터 가져오기
+    let projectData;
     try {
       const res = await axios('/get/project');
 
-      const { count, results = [] } = res.data;
-
-      newState.projectCount = count;
-      newState.projectDataSource = results.map(item => {
-        const {
-          project_id,
-          project_name,
-          start_date,
-          end_date,
-          ordering_company,
-          employee_count
-        } = item;
-
-        return {
-          key: project_id,
-          project_id,
-          project_name,
-          start_date: moment(start_date).format('YYYY-MM-DD'),
-          end_date: end_date ? moment(end_date).format('YYYY-MM-DD') : '',
-          ordering_company,
-          employee_count
-        };
-      });
+      projectData = res.data;
     } catch (err) {
       console.log(err);
 
       this.setState({ loading: false });
     }
 
+    // 프로젝트 투입 직원 데이터 가져오기
+    let employeeData;
     try {
       const res = await axios('/get/participation');
 
-      const { count, results = [] } = res.data;
-
-      newState.employeeCount = count;
-      newState.employeeDataSource = results.map(item => {
-        const {
-          project_id,
-          emp_id,
-          name,
-          start_date,
-          end_date,
-          job,
-          career,
-          skill
-        } = item;
-
-        const { project_name } = newState.projectDataSource
-          .find(n => n.project_id === project_id) || {};
-
-        return {
-          emp_id,
-          project_id,
-          project_name,
-          name,
-          start_date: moment(start_date).format('YYYY-MM-DD'),
-          end_date: end_date ? moment(end_date).format('YYYY-MM-DD') : '',
-          job,
-          career,
-          skill
-        };
-      });
-
-      let employeeColumns = newState.employeeColumns
-        .find(n => n.key === 'project_name');
-
-      employeeColumns.filters = newState.projectDataSource.map(n => ({
-        text: n.project_name,
-        value: n.project_id,
-      }));
+      employeeData = res.data;
     } catch (err) {
       console.log(err);
 
       this.setState({ loading: false });
     }
 
+    // 프로젝트 데이터 가공해서 state에 넣기
+    newState.projectCount = projectData.count;
+    newState.projectDataSource = projectData.results.map(item => {
+      const {
+        project_id,
+        project_name,
+        start_date,
+        end_date,
+        ordering_company,
+        employee_count
+      } = item;
+
+      return {
+        key: project_id,
+        project_id,
+        project_name,
+        start_date: moment(start_date).format('YYYY-MM-DD'),
+        end_date: end_date ? moment(end_date).format('YYYY-MM-DD') : '',
+        ordering_company,
+        employee_count
+      };
+    });
+
+    this.originProjectDataSource = newState.projectDataSource;
+
+    // 투입직원 데이터 가공해서 state에 넣기
+    newState.employeeCount = employeeData.count;
+    newState.employeeDataSource = employeeData.results.map(item => {
+      const {
+        project_id,
+        emp_id,
+        name,
+        start_date,
+        end_date,
+        job,
+        career,
+        skill
+      } = item;
+
+      const { project_name } = newState.projectDataSource
+        .find(n => n.project_id === project_id) || {};
+
+      return {
+        // 한 직원이 여러 프로젝트에 투입될 수 있으므로 두 개의 키를 합침
+        id: `${emp_id}${project_id}`,
+        project_id,
+        project_name,
+        name,
+        start_date: moment(start_date).format('YYYY-MM-DD'),
+        end_date: end_date ? moment(end_date).format('YYYY-MM-DD') : '',
+        job,
+        career,
+        skill
+      };
+    });
+
+    this.originEmployeeDataSource = newState.employeeDataSource;
+
+    let employeeColumns = newState.employeeColumns
+      .find(n => n.key === 'project_name');
+
+    employeeColumns.filters = newState.projectDataSource.map(n => ({
+      text: n.project_name,
+      value: n.project_id,
+    }));
+
     this.setState(newState);
   }
+
+  // 프로젝트 시작일~종료일 필터링
+  handleChange = date => {
+    const startDate = date[0];
+    const endDate = date[1];
+
+    this.setState({
+      employeeDataSource: this.originEmployeeDataSource.filter(employee =>
+        moment(employee.start_date).isBetween(startDate, endDate, null, '[]') &&
+        moment(employee.end_date).isBetween(startDate, endDate, null, '[]')
+      )
+    });
+  };
 
   render() {
     const {
@@ -175,7 +203,14 @@ class Project extends Component {
     return (
       <div>
         <Header className="content-header">
-          프로젝트 관리
+          <Row gutter={24}>
+            <Col span={12} className="title">
+              프로젝트 관리
+            </Col>
+            <Col span={12} className="user">
+              admin
+            </Col>
+          </Row>
         </Header>
         <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
           <h4>총 {projectCount}개의 프로젝트가 있습니다.</h4>
@@ -190,11 +225,16 @@ class Project extends Component {
           <h4>총 {employeeCount}명의 투입된 직원이 있습니다.</h4>
           {loading ?
             <Skeleton /> :
-            <Table
-              dataSource={employeeDataSource}
-              columns={employeeColumns}
-              rowKey="emp_id"
-            />
+            <div>
+              <div style={{ margin: '10px 0' }}>
+                <RangePicker onChange={this.handleChange} />
+              </div>
+              <Table
+                dataSource={employeeDataSource}
+                columns={employeeColumns}
+                rowKey="id"
+              />
+            </div>
           }
         </Content>
       </div>

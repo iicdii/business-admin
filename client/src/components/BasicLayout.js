@@ -6,6 +6,16 @@ import './BasicLayout.css';
 const { Sider } = Layout;
 
 class BasicLayout extends Component {
+  state = {
+    collapsed: false,
+  };
+
+  toggle = () => {
+    this.setState({
+      collapsed: !this.state.collapsed,
+    });
+  };
+
   render() {
     const { location } = this.props;
 
@@ -13,8 +23,16 @@ class BasicLayout extends Component {
       <Layout style={{ height: '100vh' }}>
         <Sider
           trigger={null}
+          collapsed={this.state.collapsed}
         >
-          <div className="logo" />
+          <div className="logo_wrapper">
+            {/*<div className="logo" />*/}
+            <Icon
+              className="trigger"
+              type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'}
+              onClick={this.toggle}
+            />
+          </div>
           <Menu theme="dark" mode="inline" defaultSelectedKeys={[location.pathname]}>
             <Menu.Item key="/">
               <NavLink to="/" className="nav-text">
